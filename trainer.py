@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 from model import ShapesDetector
 from loss import yolo_loss
 from dataset import ShapesDataset
@@ -19,13 +20,15 @@ class Trainer:
                  , batch_size=64
                  , lr=1e-3
                  , weight_decay=5e-4
-                 ) -> None:
+                 , adaptive_step=False
+                 , val_freq = 5) -> None:
         
         if torch.cuda.is_available():
             self.device = 'cuda'
         else:
             self.device = 'cpu'
-        self.min_loss = 10000
+        self.adaptive_step = adaptive_step
+        self.min_val_loss = 10000
         self.model = model.to(self.device)
         self.train_size = train_size
         self.batch_size = batch_size
@@ -42,27 +45,40 @@ class Trainer:
 
     def train_epoch(self):
         self.cur_epoch += 1
+        if self.adaptive_step:
+            if 0 <= self.cur_epoch  <= 4:
+                lr = 1e-5
+            elif 5 <= self.cur_epoch  <= 8:
+                lr = 1e-2
+            elif 9 <= self.cur_epoch  <= 14:
+                lr = 1e-3
+            else:
+                lr = 1e-2
+            for g in self.optimizer.param_groups:
+                g['lr'] = lr
+
         for j in range((self.train_size // self.epochs) // self.batch_size):
             self.optimizer.zero_grad()
             batch, labels = self.dataset[j]
             y_hat = self.model(batch)
             loss = self.loss_f(y_hat, labels)
             loss.backward()
-            if loss < self.min_loss:
-                self.min_loss = loss
-                self.ckpt_params = self.model.state_dict()
+            
             self.train_loss.append(loss.item())
             self.optimizer.step()
             print(f'epoch {self.cur_epoch}, batch {j}: mean loss on batch: {loss.item()}', end='\r')
-        if self.cur_epoch % 5 == 0:
+        if self.cur_epoch % self.val_freq == 0:
             self.val_loss()
 
     def val_loss(self):
-        print('Calculating loss on test...', end='\r')
+        print('Calculating loss on test... ', end='\n')
         with torch.no_grad():
             input, label = self.test_data[0]
             v_loss = self.loss_f(self.model(input), label)
             self.test_loss.append(v_loss)
+            if v_loss < self.min_val_loss:
+                self.min_val_loss = v_loss
+                self.ckpt_params = self.model.state_dict()
             print(f'epoch {self.cur_epoch} mean test_loss = {v_loss}')
 
     def change_lr(self, lr):
@@ -74,9 +90,11 @@ class Trainer:
         for epoch in range(self.epochs):
             self.train_epoch()
 
-    def save_model(self, ckpt_path):
-        torch.save(self.ckpt_params, 'last_ckpt') 
+    def save_model(self, ckpt_path='last_ckpt.pt'):
+        torch.save(self.ckpt_params, ckpt_path) 
 
     def plot_loss(self):
+
         plt.plot(self.train_loss)
+    
 
