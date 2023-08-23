@@ -25,6 +25,8 @@ class Trainer:
             self.device = 'cuda'
         else:
             self.device = 'cpu'
+
+        self.model = model.to(self.device)
         self.train_size = train_size
         self.batch_size = batch_size
         self.test_size = test_size
