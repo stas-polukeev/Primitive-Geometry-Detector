@@ -14,11 +14,13 @@ class ShapesDataset(Dataset):
             self.device = 'cuda'
         else:
             self.device = 'cpu'
+        self.images_seen = 0
         self.size = size
         self.batch_size = batch_size
         self.generator = ImageGenerator()
         self.one_hot = F.one_hot(torch.arange(4))
         self.names = ['Circle', 'Hexagon', 'Rhombus', 'Triangle']
+        self.imgs_per_figure = {i: 0 for i in self.names}
         self.name_encode = {name : i for i, name in enumerate(self.names)}
         self.name_decode = {i : name for i, name in enumerate(self.names)}
         self.figure_keys = ['name', 'y', 'x', 'h', 'w']
@@ -27,14 +29,19 @@ class ShapesDataset(Dataset):
         return self.size
     
     def __getitem__(self, index: Any) -> Any:
-        
+        """
+        technically gives you batch of size self.batch_size and does not depend on index.
+        """
         img_batch, res_batch = [], []
         for i in range(self.batch_size):
             img, dic = self.generator.generate()
             res = torch.zeros((1, 9, 8, 8))
-            
+            seen = set()
             for key in dic.keys():
                 name, y, x, h, w = [dic[key][i] for i in self.figure_keys]
+                if name not in seen:
+                    self.imgs_per_figure[name] += 1
+                    seen.add(name)
                 center = torch.tensor([y + h // 2, x + w // 2])
                 position = center // 32
                 dy, dx = (center - position * 32) / 32
@@ -45,5 +52,6 @@ class ShapesDataset(Dataset):
                 res[0, :, position[0], position[1]] = res_vec
             img_batch.append(ToTensor()(img).unsqueeze(0))
             res_batch.append(res)
+            self.images_seen += 1
         
         return torch.concat(img_batch, 0).to(self.device), torch.concat(res_batch, 0).to(self.device)

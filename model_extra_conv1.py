@@ -15,51 +15,36 @@ class ShapesDetector(torch.nn.Module):
             ,self.relu
             ,self.pool
         ])
-        
-        self.conv2_1 = nn.Sequential(*[
-            nn.Conv2d(64, 32, 1, 1, 0)
-            ,self.relu
-        ])
 
         self.conv2_3 = nn.Sequential(*[
-            nn.Conv2d(64, 64, 3, 1, 1)
+            nn.Conv2d(64, 32, 3, 2, 1)
             ,self.relu
         ])
         
         self.conv2_5 = nn.Sequential(*[
-            nn.Conv2d(64, 32, 5, 1, 2)
+            nn.Conv2d(64, 32, 5, 2, 2)
             ,self.relu
         ])
-        #128
         
-
-        self.conv_extra =  nn.Sequential(*[
-            nn.Conv2d(128, 128, 5, 1, 3)
-            ,self.relu
-            ,self.pool
-        ])
-
         self.conv3 = nn.Sequential(*[
-            nn.Conv2d(128, 128, 3, 1, 1)
+            nn.Conv2d(64, 64, 3, 1, 1)
             ,self.relu
             ,self.pool
         ])
         
-        self.conv4 = nn.Conv2d(128, 128, 1, 1, 0)
+        self.conv4 = nn.Sequential(nn.Conv2d(64, 128, 1, 1, 0)
+                                   ,self.relu)
         self.conv5 = nn.Conv2d(128, 9, 1, 1, 0)
-    
+
     def forward(self, x):
         # x: (B, 3, 256, 256)
         x = self.conv1(x)
         #(B, 64, 64, 64)
         x1 = self.conv2_5(x)
         x2 = self.conv2_3(x)
-        x3 = self.conv2_1(x)
-
-        x = torch.concat((x1, x2, x3), dim=1)
+        x = torch.concat((x1, x2), dim=1)
         x = self.pool(x)
         #(B, 64, 16, 16)
-        x = self.conv_extra(x)
         x = self.conv3(x)
         #(B, 64, 8, 8)
         x = self.conv4(x)
