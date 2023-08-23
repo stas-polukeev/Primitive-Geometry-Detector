@@ -45,7 +45,9 @@ class ShapesDetector(torch.nn.Module):
             ,self.pool
         ])
         
-        self.conv4 = nn.Conv2d(128, 128, 1, 1, 0)
+        self.conv4 = nn.Sequential(
+                nn.Conv2d(128, 128, 1, 1, 0),
+                self.relu)
         self.conv5 = nn.Conv2d(128, 9, 1, 1, 0)
     
     def forward(self, x):
