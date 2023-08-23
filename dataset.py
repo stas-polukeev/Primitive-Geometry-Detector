@@ -10,6 +10,10 @@ class ShapesDataset(Dataset):
 
     def __init__(self, size, batch_size=64) -> None:
         super().__init__()
+        if torch.cuda.is_available():
+            self.device = 'cuda'
+        else:
+            self.device = 'cpu'
         self.size = size
         self.batch_size = batch_size
         self.generator = ImageGenerator()
@@ -42,4 +46,4 @@ class ShapesDataset(Dataset):
             img_batch.append(ToTensor()(img).unsqueeze(0))
             res_batch.append(res)
         
-        return torch.concat(img_batch, 0), torch.concat(res_batch, 0)
+        return torch.concat(img_batch, 0).to(self.device), torch.concat(res_batch, 0).to(self.device)
