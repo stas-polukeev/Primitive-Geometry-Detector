@@ -42,6 +42,7 @@ class Trainer:
         self.optimizer = Adam(model.parameters(), lr=1e-3, weight_decay=5e-4)
         self.cur_epoch = 0
         self.ckpt_params = self.model.state_dict()
+        self.val_freq = val_freq
 
     def train_epoch(self):
         self.cur_epoch += 1
