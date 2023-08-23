@@ -48,7 +48,7 @@ class Trainer:
         self.cur_epoch += 1
         if self.adaptive_step:
             if 0 <= self.cur_epoch  <= 4:
-                lr = 1e-5
+                lr = 1e-4
             elif 5 <= self.cur_epoch  <= 8:
                 lr = 1e-2
             elif 9 <= self.cur_epoch  <= 14:
