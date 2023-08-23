@@ -89,6 +89,7 @@ class Trainer:
     def train(self):
         for epoch in range(self.epochs):
             self.train_epoch()
+        print('Finished training')
 
     def save_model(self, ckpt_path='last_ckpt.pt'):
         torch.save(self.ckpt_params, ckpt_path) 
