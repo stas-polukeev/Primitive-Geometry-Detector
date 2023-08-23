@@ -27,6 +27,7 @@ class Trainer:
             self.device = 'cuda'
         else:
             self.device = 'cpu'
+        self.val_freq = val_freq
         self.adaptive_step = adaptive_step
         self.min_val_loss = 10000
         self.model = model.to(self.device)
