@@ -12,9 +12,8 @@ class ImageGenerator:
     
     """
 
-    def __init__(self, export_folder = None, min_bbox=25, max_bbox=150):
+    def __init__(self, export_folder = None):
         self.export_folder = export_folder
-        self.min_bbox, self.max_bbox = min_bbox, max_bbox
         self.n_image = 0
 
     def generate_n_samples(self, n, save=False):
