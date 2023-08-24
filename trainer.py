@@ -21,7 +21,7 @@ class Trainer:
                  , lr=1e-3
                  , weight_decay=5e-4
                  , adaptive_step=False
-                 , self.lr_schedule=None
+                 , lr_schedule=None
                  , val_freq = 5) -> None:
         
         if torch.cuda.is_available():
