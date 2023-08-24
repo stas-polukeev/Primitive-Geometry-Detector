@@ -21,6 +21,7 @@ class Trainer:
                  , lr=1e-3
                  , weight_decay=5e-4
                  , adaptive_step=False
+                 , self.lr_schedule = None
                  , val_freq = 5) -> None:
         
         if torch.cuda.is_available():
@@ -43,21 +44,10 @@ class Trainer:
         self.cur_epoch = 0
         self.ckpt_params = self.model.state_dict()
         self.val_freq = val_freq
+        self.lr_schedule = lr_schedule
 
     def train_epoch(self):
-        self.cur_epoch += 1
-        if self.adaptive_step:
-            if 0 <= self.cur_epoch  <= 4:
-                lr = 1e-4
-            elif 5 <= self.cur_epoch  <= 8:
-                lr = 1e-2
-            elif 9 <= self.cur_epoch  <= 14:
-                lr = 1e-3
-            else:
-                lr = 1e-2
-            for g in self.optimizer.param_groups:
-                g['lr'] = lr
-
+        
         for j in range((self.train_size // self.epochs) // self.batch_size):
             self.optimizer.zero_grad()
             batch, labels = self.dataset[j]
@@ -85,10 +75,17 @@ class Trainer:
     def change_lr(self, lr):
         #manual control for platoeing instead of scheduling
         self.cur_epoch -= 1
-        self.optimizer.lr = lr
+        for g in self.optimizer.param_groups:
+            g['lr'] = lr
 
     def train(self):
         for epoch in range(self.epochs):
+            self.cur_epoch = epoch
+            if self.adaptive_step:
+                lr = self.lr_schedule()[self.cur_epoch]
+                for g in self.optimizer.param_groups:
+                    g['lr'] = lr
+
             self.train_epoch()
         print('Finished training')
 
