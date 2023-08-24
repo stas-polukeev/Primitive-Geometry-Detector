@@ -80,7 +80,7 @@ class Trainer:
     def train(self):
         while self.cur_epoch <= self.epochs:
             if self.adaptive_step:
-                lr = self.lr_schedule()[self.cur_epoch]
+                lr = self.lr_schedule[self.cur_epoch]
                 for g in self.optimizer.param_groups:
                     g['lr'] = lr
             self.train_epoch()
