@@ -21,13 +21,13 @@ class Trainer:
                  , lr=1e-3
                  , weight_decay=5e-4
                  , adaptive_step=False
+                 , lr_schedule=None
                  , val_freq = 5) -> None:
         
         if torch.cuda.is_available():
             self.device = 'cuda'
         else:
             self.device = 'cpu'
-        self.val_freq = val_freq
         self.adaptive_step = adaptive_step
         self.min_val_loss = 10000
         self.model = model.to(self.device)
@@ -35,7 +35,7 @@ class Trainer:
         self.batch_size = batch_size
         self.test_size = test_size
         self.epochs = epochs
-        self.test_data = ShapesDataset(1000, 1000)
+        self.test_data = ShapesDataset(test_size, test_size)
         self.train_loss = []
         self.test_loss = []
         self.dataset = ShapesDataset(train_size, batch_size)
@@ -43,21 +43,11 @@ class Trainer:
         self.optimizer = Adam(model.parameters(), lr=1e-3, weight_decay=5e-4)
         self.cur_epoch = 0
         self.ckpt_params = self.model.state_dict()
+        self.val_freq = val_freq
+        self.lr_schedule = lr_schedule
 
     def train_epoch(self):
-        self.cur_epoch += 1
-        if self.adaptive_step:
-            if 0 <= self.cur_epoch  <= 4:
-                lr = 1e-5
-            elif 5 <= self.cur_epoch  <= 8:
-                lr = 1e-2
-            elif 9 <= self.cur_epoch  <= 14:
-                lr = 1e-3
-            else:
-                lr = 1e-2
-            for g in self.optimizer.param_groups:
-                g['lr'] = lr
-
+        
         for j in range((self.train_size // self.epochs) // self.batch_size):
             self.optimizer.zero_grad()
             batch, labels = self.dataset[j]
@@ -84,12 +74,18 @@ class Trainer:
 
     def change_lr(self, lr):
         #manual control for platoeing instead of scheduling
-        self.cur_epoch -= 1
-        self.optimizer.lr = lr
+        for g in self.optimizer.param_groups:
+            g['lr'] = lr
 
     def train(self):
-        for epoch in range(self.epochs):
+        while self.cur_epoch <= self.epochs:
+            if self.adaptive_step:
+                lr = self.lr_schedule()[self.cur_epoch]
+                for g in self.optimizer.param_groups:
+                    g['lr'] = lr
             self.train_epoch()
+            self.cur_epoch += 1
+        print('Finished training')
 
     def save_model(self, ckpt_path='last_ckpt.pt'):
         torch.save(self.ckpt_params, ckpt_path) 
@@ -98,4 +94,3 @@ class Trainer:
 
         plt.plot(self.train_loss)
     
-
