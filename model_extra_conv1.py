@@ -27,7 +27,11 @@ class ShapesDetector(torch.nn.Module):
         ])
         
         self.conv3 = nn.Sequential(*[
+<<<<<<< HEAD
             nn.Conv2d(128, 128, 3, 1, 1)
+=======
+            nn.Conv2d(128, 64, 3, 1, 1)
+>>>>>>> 13782908cc1c206e8aaa017dab4da548d1b642bc
             ,self.relu
             ,self.pool
         ])
