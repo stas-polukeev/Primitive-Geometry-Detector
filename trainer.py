@@ -35,7 +35,7 @@ class Trainer:
         self.batch_size = batch_size
         self.test_size = test_size
         self.epochs = epochs
-        self.test_data = ShapesDataset(1000, 1000)
+        self.test_data = ShapesDataset(test_size, test_size)
         self.train_loss = []
         self.test_loss = []
         self.dataset = ShapesDataset(train_size, batch_size)
@@ -79,14 +79,13 @@ class Trainer:
             g['lr'] = lr
 
     def train(self):
-        for epoch in range(self.epochs):
-            self.cur_epoch = epoch
+        while self.cur_epoch <= self.epochs:
             if self.adaptive_step:
                 lr = self.lr_schedule()[self.cur_epoch]
                 for g in self.optimizer.param_groups:
                     g['lr'] = lr
-
             self.train_epoch()
+            self.cur_epoch += 1
         print('Finished training')
 
     def save_model(self, ckpt_path='last_ckpt.pt'):
