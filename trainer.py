@@ -58,7 +58,7 @@ class Trainer:
             self.train_loss.append(loss.item())
             self.optimizer.step()
             print(f'epoch {self.cur_epoch}, batch {j}: mean loss on batch: {loss.item()}', end='\r')
-        if self.cur_epoch % self.val_freq == 0:
+        if (self.cur_epoch + 1) % self.val_freq == 0:
             self.val_loss()
 
     def val_loss(self):
@@ -80,7 +80,7 @@ class Trainer:
     def train(self):
         while self.cur_epoch <= self.epochs:
             if self.adaptive_step:
-                lr = self.lr_schedule()[self.cur_epoch]
+                lr = self.lr_schedule[self.cur_epoch]
                 for g in self.optimizer.param_groups:
                     g['lr'] = lr
             self.train_epoch()
