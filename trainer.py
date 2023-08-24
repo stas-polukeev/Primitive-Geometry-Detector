@@ -58,7 +58,7 @@ class Trainer:
             self.train_loss.append(loss.item())
             self.optimizer.step()
             print(f'epoch {self.cur_epoch}, batch {j}: mean loss on batch: {loss.item()}', end='\r')
-        if self.cur_epoch % self.val_freq == 0:
+        if (self.cur_epoch + 1) % self.val_freq == 0:
             self.val_loss()
 
     def val_loss(self):
@@ -74,7 +74,6 @@ class Trainer:
 
     def change_lr(self, lr):
         #manual control for platoeing instead of scheduling
-        self.cur_epoch -= 1
         for g in self.optimizer.param_groups:
             g['lr'] = lr
 
@@ -95,4 +94,3 @@ class Trainer:
 
         plt.plot(self.train_loss)
     
-
